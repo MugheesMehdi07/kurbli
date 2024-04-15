@@ -1,3 +1,8 @@
+import requests
+
+from constants import ATOM_API_KEY
+
+
 def calculate_overall_rating(schools):
     rating_values = {
         'A+': 4.33, 'A': 4.0, 'A-': 3.67,
@@ -26,3 +31,15 @@ def calculate_overall_rating(schools):
     return closest_rating
 
 
+def fetch_schools(geoIdV4):
+    url = "https://api.gateway.attomdata.com/v4/school/search"
+    params = {"geoIdV4": geoIdV4, "radius": 5, "page": 1, "pageSize": 200}
+    headers = {"apikey": ATOM_API_KEY}
+    response = requests.get(url, headers=headers, params=params)
+
+    print("Schools Response:", response.json())
+
+    school_score = calculate_overall_rating(response.json())
+    print("Schools Score:", school_score)
+
+    return school_score
