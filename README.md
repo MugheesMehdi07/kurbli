@@ -83,5 +83,3 @@ This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md
 - Thanks to everyone who has contributed to the project!
 - Special thanks for the inspiration and guidance from the community.
 ```
-
-You can copy this content directly into your project's `README.md` file. Make sure to replace placeholder links and user information with actual data relevant to your project.
