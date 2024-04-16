@@ -1,4 +1,3 @@
-```markdown
 # Property Investibility Score Generator
 
 The Property Investibility Score Generator is an advanced tool designed to evaluate the potential of properties for investment purposes. By inputting a property address, users can receive a numeric score that reflects the property's potential for appreciation and profitability.
