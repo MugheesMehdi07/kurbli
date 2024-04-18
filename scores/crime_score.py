@@ -1,17 +1,29 @@
 import requests
 
-from constants import ATOM_API_KEY
+from constants import ATOM_API_KEY, CRIME_PROFILE_URL
+
+
+def normalize_crime_rate(neighborhood_crime_rating):
+    """Normalize the crime rate to a value between 1-10 for scoring purposes using a linear formula."""
+    try:
+        crime_rate = float(neighborhood_crime_rating)
+    except ValueError:
+        return None
+
+    # Calculate the score based on the crime rate
+    score = 11 - (crime_rate // 100)
+
+    # Clamp the score to be within 1 to 10
+    return max(1, min(10, score))
 
 
 def fetch_community_profile(geoIdv4):
-    url = "https://api.gateway.attomdata.com/v4/neighborhood/community"
 
     params = {"geoIdv4": geoIdv4}
     headers = {"apikey": ATOM_API_KEY}
-    response = requests.get(url, headers=headers, params=params).json()
+    response = requests.get(CRIME_PROFILE_URL, headers=headers, params=params).json()
 
 
-    print("Community Profile Response:", response.json())
     # Navigate through the nested JSON to reach the crime section
     crime_data = response.get('community', {}).get('crime', {})
 
@@ -20,4 +32,4 @@ def fetch_community_profile(geoIdv4):
 
     print("Neighborhood Crime Rating:", neighborhood_crime_rating)
 
-    return neighborhood_crime_rating
+    return normalize_crime_rate(neighborhood_crime_rating)

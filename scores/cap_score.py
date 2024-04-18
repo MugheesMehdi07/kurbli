@@ -1,6 +1,15 @@
 import requests
 
 
+def normalize_cap_rate(cap_rate):
+    """Normalize the cap rate to a value between 1-10 for scoring purposes."""
+    if cap_rate < 0.01:
+        return 1
+    elif cap_rate > 0.1:
+        return 10
+    else:
+        return int((cap_rate - 0.01) / 0.01) + 1
+
 def fetch_batchdata_property_lookup(api_token, data):
     url = "https://api.batchdata.com/api/v1/property/lookup/all-attributes"
     headers = {
@@ -32,7 +41,7 @@ def calculate_cap_score(data):
     # Extract the relevant data from the response
     property_info = response['results']['properties'][0]
     market_value = property_info['valuation']['estimatedValue']
-    monthly_rental_estimate = 2000  # Placeholder since the actual rental estimate is not provided in the JSON
+    monthly_rental_estimate = 2000
 
     # Step 1: Calculate the gross annual rent
     gross_annual_rent = monthly_rental_estimate * 12
@@ -46,4 +55,6 @@ def calculate_cap_score(data):
     # Step 4: Calculate the Cap Rate
     cap_rate = net_income / market_value
 
-    return cap_rate
+    print("Cap Rate:", cap_rate)
+
+    return normalize_cap_rate(cap_rate)

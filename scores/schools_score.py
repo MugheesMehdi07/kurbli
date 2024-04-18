@@ -1,6 +1,6 @@
 import requests
 
-from constants import ATOM_API_KEY
+from constants import ATOM_API_KEY,SCHOOL_PROFILE_URL
 
 
 def calculate_overall_rating(schools):
@@ -16,10 +16,13 @@ def calculate_overall_rating(schools):
     count = 0
 
     for school in schools:
-        rating = school['detail']['schoolRating'].strip()
-        if rating in rating_values:
-            total_score += rating_values[rating]
-            count += 1
+        try:
+            rating = school['detail']['schoolRating'].strip()
+            if rating in rating_values:
+                total_score += rating_values[rating]
+                count += 1
+        except KeyError:
+            continue # pass if school rating for some school not found
 
     if count == 0:
         return None  # No valid ratings found
@@ -28,18 +31,20 @@ def calculate_overall_rating(schools):
     # Convert average score back to rating
     closest_rating = min(rating_values, key=lambda x: abs(rating_values[x] - average_score))
 
+    print("Closest Rating:", closest_rating)
     return closest_rating
 
 
 def fetch_schools(geoIdV4):
-    url = "https://api.gateway.attomdata.com/v4/school/search"
-    params = {"geoIdV4": geoIdV4, "radius": 5, "page": 1, "pageSize": 200}
+
+    params = {"geoIdV4": geoIdV4}
     headers = {"apikey": ATOM_API_KEY}
-    response = requests.get(url, headers=headers, params=params)
+    response = requests.get(SCHOOL_PROFILE_URL, headers=headers, params=params)
 
-    print("Schools Response:", response.json())
+    schools = response.json()['schools']
+    # print("Schools Response:", response.json())
 
-    school_score = calculate_overall_rating(response.json())
-    print("Schools Score:", school_score)
+    school_score = calculate_overall_rating(schools)
+    # print("Schools Score:", school_score)
 
     return school_score
