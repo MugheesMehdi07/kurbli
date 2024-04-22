@@ -40,11 +40,11 @@ def fetch_schools(geoIdV4):
     params = {"geoIdV4": geoIdV4}
     headers = {"apikey": ATOM_API_KEY}
     response = requests.get(SCHOOL_PROFILE_URL, headers=headers, params=params)
-
     schools = response.json()['schools']
-    # print("Schools Response:", response.json())
+    print("Schools Response:", response.json())
 
     school_score = calculate_overall_rating(schools)
     # print("Schools Score:", school_score)
 
     return school_score
+

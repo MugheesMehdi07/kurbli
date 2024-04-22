@@ -9,6 +9,6 @@ BATCH_API_KEY = 'MDBUSyko3Q2cpXho7NboEIEzAaAKncCw9AIbTfbZ'
 #URLS
 CRIME_PROFILE_URL = f'{ATOM_BASE_URL}/v4/neighborhood/community'
 SFR_PROFILE_URL = f'{ATOM_BASE_URL}/propertyapi/v1.0.0/property/snapshot'
-SCHOOL_PROFILE_URL = f'{ATOM_BASE_URL}v4/school/search'
+SCHOOL_PROFILE_URL = f'{ATOM_BASE_URL}/v4/school/search'
 BASIC_PROFILE_URL = f'{ATOM_BASE_URL}/propertyapi/v1.0.0/property/basicprofile'
 
