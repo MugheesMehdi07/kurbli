@@ -1,0 +1,98 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: An AWS Lambda application to calculate investibility scores for properties.
+
+Globals:
+  Function:
+    Timeout: 10 # Timeout for all functions in seconds
+    Runtime: python3.12
+
+Resources:
+  GetGeoIdFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: geo_id.get_geo_id
+      CodeUri: geo_id
+      Events:
+        ApiEvent:
+          Type: Api
+          Properties:
+            Path: /geo_id
+            Method: get
+
+#  CapRateFunction:
+#    Type: AWS::Serverless::Function
+#    Properties:
+#      Handler: cap_rate.lambda_handler
+#      CodeUri: src/cap_rate/
+#      Events:
+#        ApiEvent:
+#          Type: Api
+#          Properties:
+#            Path: /cap_rate
+#            Method: get
+#
+#  CrimeScoreFunction:
+#    Type: AWS::Serverless::Function
+#    Properties:
+#      Handler: crime_score.lambda_handler
+#      CodeUri: src/crime_score/
+#      Events:
+#        ApiEvent:
+#          Type: Api
+#          Properties:
+#            Path: /crime_score
+#            Method: get
+#
+#  SchoolScoreFunction:
+#    Type: AWS::Serverless::Function
+#    Properties:
+#      Handler: school_score.lambda_handler
+#      CodeUri: src/school_score/
+#      Events:
+#        ApiEvent:
+#          Type: Api
+#          Properties:
+#            Path: /school_score
+#            Method: get
+#
+#  NSFRScoresFunction:
+#    Type: AWS::Serverless::Function
+#    Properties:
+#      Handler: nsfr_scores.lambda_handler
+#      CodeUri: src/nsfr_scores/
+#      Events:
+#        ApiEvent:
+#          Type: Api
+#          Properties:
+#            Path: /nsfr_scores
+#            Method: get
+#
+#  RSFRScoresFunction:
+#    Type: AWS::Serverless::Function
+#    Properties:
+#      Handler: rsfr_scores.lambda_handler
+#      CodeUri: src/rsfr_scores/
+#      Events:
+#        ApiEvent:
+#          Type: Api
+#          Properties:
+#            Path: /rsfr_scores
+#            Method: get
+#
+#  InvestibilityScoreFunction:
+#    Type: AWS::Serverless::Function
+#    Properties:
+#      Handler: investibility_score.lambda_handler
+#      CodeUri: src/investibility_score/
+#      Events:
+#        ApiEvent:
+#          Type: Api
+#          Properties:
+#            Path: /investibility_score
+#            Method: post
+
+Outputs:
+  ApiUrl:
+    Description: "API Gateway endpoint URL for Prod stage"
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/"
