@@ -1,0 +1,103 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" href="../dist/batch-address-auto-complete.min.css">
+<script src="../dist/batch-address-auto-complete.min.js"></script>
+<script src="environment.js"></script>
+<style>
+  .highlight {
+    font-size: 24px;
+    color: red;
+  }
+</style>
+<script>
+	var selectedAddress = {}
+  function initialize() {
+      // Custom Autocomplete of Batch Service
+      batchAutocomplete(document.getElementById("batchAddressAutoComplete"), env.domainServer, env.apiKey);
+
+      // Add an event listener to get value
+      document.addEventListener("batch-address-auto-complete", function(e) {
+         console.log('Selected item: ', e.detail);
+         if (e.detail) {
+             selectedAddress = {
+                 address: e.detail.name,
+                 city: e.detail.city,
+                 state: e.detail.state,
+                 zip: e.detail.zip,
+                 latitude: e.detail.latitude,
+                 longitude: e.detail.longitude
+             };
+             document.getElementById('getAddress').textContent = 'Selected address: ' + e.detail.name;
+             console.log(selectedAddress)
+         } else {
+             console.log("No address detail found");
+         }
+      });
+
+      // Add an event listener to handle error
+      document.addEventListener("batch-auto-complete-error", function (e) {
+         console.log("Error while searching: ", e.detail);
+      });
+  }
+
+  function calculateScore() {
+      if (!selectedAddress.address) {
+          alert('Please select an address first.');
+          return;
+      }
+
+      // Making an AJAX GET request to the Flask backend
+      fetch(`http://localhost:5000/api/calculate_score?address=${encodeURIComponent(JSON.stringify(selectedAddress))}`, {
+          method: 'GET'
+      })
+      .then(response => response.json())
+      .then(data => {
+          console.log('Success:', data);
+		  displayData(data);
+
+      })
+      .catch((error) => {
+          console.error('Error:', error);
+          document.getElementById('dataDisplay').textContent = 'Failed to load data: ' + error;
+      });
+  }
+
+
+   function displayData(data) {
+    const displayElement = document.getElementById('dataDisplay');
+    displayElement.innerHTML = `
+      <div>Cap Rate: ${data.cap_rate}</div>
+      <div>Flood Factor Score: ${data.flood_factor_score}</div>
+      <div>Neighborhood Crime Rating: ${data.neighborhood_crime_rating}</div>
+      <div>Number of NxO SFRs: ${data.number_of_nxo_sfrs}</div>
+      <div>Number of rSFR: ${data.number_of_rsfr}</div>
+      <div>School Score: ${data.school_score}</div>
+      <div class="highlight">Investibility Score: ${data.investibility_score}</div>
+    `;
+  }
+
+
+
+</script>
+</head>
+<body onload="initialize()">
+
+  <h2>Kurbli</h2>
+  <p>Start typing to select address:</p>
+  <div class="batch-loading">
+    <input class="batch-autocomplete" id="batchAddressAutoComplete" notFoundText="No results found" showNotFound=true
+       displayData="name" type="text" take="5" debounce='700' placeholder="Enter your address">
+    <div id="batch-loader"></div>
+    <div id="batchNoDataFound"></div>
+  </div>
+  <button onclick="calculateScore()">Calculate Score</button>
+  <div>
+     <p style="font-weight: 900; color: blue;" id='getAddress'></p>
+	   <div id='dataDisplay'></div>
+
+  </div>
+</body>
+</html>
