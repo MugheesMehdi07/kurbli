@@ -1,0 +1,27 @@
+geo_id:
+geo_id?address=4529%20Winona%20Ct,%20Denver,%20CO%2080212
+{"geo_id": "1291dc1937525d78f89cebb6a43a50de", "longitude": "-105.047775", "latitude": "39.778926"}
+
+
+cap_rate:
+investibility/cap_score?address=4529%20Winona%20Ct,%20Denver,%20CO%2080212
+{"cap_score": 1}
+
+school_score:
+investibility/school_score?geo_id=6828b00047035292dd47fe020e636bb3
+{"school_score": 6}
+
+crime_score:
+investibility/crime_score?geo_id=6828b00047035292dd47fe020e636bb3
+{"crime_score": 10}
+
+rsfr_score:
+investibility/rfsr_score?longitude=-105.047775&latitude=39.778926
+{"r_sfr_score": 10000}
+
+nsfr_score:
+investibility/nsfr_score?longitude=-105.047775&latitude=39.778926
+{"n_sfr_score": 10000}
+
+final investibility score:
+investibility/?cap_rate=9&number_of_nxo_sfrs=15&number_of_rsfr=4&flood_factor_score=2&neighborhood_crime_rating=1&school_score=10

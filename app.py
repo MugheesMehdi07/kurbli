@@ -2,15 +2,14 @@ import json
 
 from flask import Flask, request, jsonify
 from flask_cors import CORS
-import requests
 
 from data.models import Property
-from constants import ATOM_API_KEY, BASIC_PROFILE_URL
+from src.utils import ATOM_API_KEY
 from investibility_calculation import calculate_investibility_score
 from src.cap_score import calculate_cap_score
 from src.crime_score import fetch_community_profile
 from src.schools_score import fetch_schools
-from src.sfr_score import nsfr_score, rsfr_score
+from src.nsfr_score import nsfr_score, rsfr_score
 
 app = Flask(__name__)
 CORS(app)

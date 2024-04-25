@@ -1,60 +1,85 @@
-import requests
+import json
+import urllib3
+from urllib.parse import urlencode
+from utils import *
 
 
 def normalize_cap_rate(cap_rate):
-    """Normalize the cap rate to a value between 1-10 for scoring purposes."""
-    if cap_rate < 0.01:
-        return 1
-    elif cap_rate > 0.1:
-        return 10
-    else:
-        return int((cap_rate - 0.01) / 0.01) + 1
+    """Normalize the cap rate to a value between 1-30 for scoring purposes."""
+    normalized_cap_rate = (cap_rate * 100) / 3.33  # Normalize the cap rate to a value between 1-30
+    return max(1, min(30, normalized_cap_rate))  # Clamp the score to be within 1 to 30
+
 
 def fetch_batchdata_property_lookup(api_token, data):
-    url = "https://api.batchdata.com/api/v1/property/lookup/all-attributes"
+    http = urllib3.PoolManager()
+    url = BATCH_URL
     headers = {
         "Accept": "application/json",
         "Authorization": f"Bearer {api_token}",
         "Content-Type": "application/json"
     }
-
-    # Construct the address data for the API call
-
-
-    response = requests.post(url, json={"requests": [{"address": data}]}, headers=headers)
-
-    if response.status_code == 200:
-        return response.json()
-    else:
-        print(f"Error fetching BatchData: {response.status_code}")
+    try:
+        # Send the POST request with JSON data
+        response = http.request('POST', url, headers=headers, body=json.dumps({"requests": [{"address": data}]}))
+        if response.status == 200:
+            return json.loads(response.data.decode('utf-8'))
+        else:
+            print(f"Error fetching BatchData: {response.status}")
+            return None
+    except Exception as e:
+        print(f"Error occurred during BatchData fetch: {e}")
         return None
 
-def calculate_cap_score(data):
-    batchdata_api_token = "MDBUSyko3Q2cpXho7NboEIEzAaAKncCw9AIbTfbZ"
 
+def calculate_cap_score(data):
+    batchdata_api_token = BATCH_API_KEY
     response = fetch_batchdata_property_lookup(
         api_token=batchdata_api_token,
         data=data
     )
 
     print("BatchData Property Lookup:", response)
-    # Extract the relevant data from the response
+
+    if not response or 'results' not in response or not response['results']['properties']:
+        return {"error": "No property data found"}
+
     property_info = response['results']['properties'][0]
     market_value = property_info['valuation']['estimatedValue']
     monthly_rental_estimate = 2000
 
-    # Step 1: Calculate the gross annual rent
     gross_annual_rent = monthly_rental_estimate * 12
-
-    # Step 2: Calculate the annual expenses (assuming 5% of market value as expenses)
     annual_expenses = market_value * 0.05
-
-    # Step 3: Calculate the net income of the property
     net_income = gross_annual_rent - annual_expenses
-
-    # Step 4: Calculate the Cap Rate
     cap_rate = net_income / market_value
 
     print("Cap Rate:", cap_rate)
 
     return normalize_cap_rate(cap_rate)
+
+
+def lambda_handler(event, context):
+    data = event.get('queryStringParameters', {}).get('address', '')
+    address = get_address(data)
+
+    if not data:
+        return {
+            "statusCode": 400,
+            "body": json.dumps({"error": "Data parameter is required"})
+        }
+
+
+    cap_score = calculate_cap_score(address)
+    return {
+        "statusCode": 200,
+        "body": json.dumps({"cap_score": cap_score})
+    }
+
+
+# Test the lambda_handler function
+event = {
+    "queryStringParameters": {
+        "address": "4529 Winona Ct, Denver, CO 80212"
+    }
+}
+context = {}
+print(lambda_handler(event, context))
