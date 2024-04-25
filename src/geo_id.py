@@ -1,63 +1,83 @@
 import json
 import urllib.parse
-import urllib3  # Use urllib.parse instead of urllib
+import urllib3
+import logging
 from utils import *
+
+# Setup logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 
 def lambda_handler(event, context):
     try:
+        logger.info("Received event: %s", event)
+
+        # Initialize response object
+        response = {
+            "statusCode": 200,
+            'headers': {
+                'Access-Control-Allow-Headers': 'Content-Type',
+                'Access-Control-Allow-Origin': '*',
+                'Access-Control-Allow-Methods': '*'
+            },
+            "body": ""
+        }
+
         # Parse the incoming JSON from event
         data = event.get('queryStringParameters', {}).get('address', '')
         data = urllib.parse.unquote(data)
 
-        address = get_address(data)
-        headers = {"apikey": ATOM_API_KEY}
+        logger.info("Received address: %s", data)
 
-        address1 = address['street']
-        address2 = f"{address['city']}, {address['state']} {address['zip']}"
+        headers = {"apikey": ATOM_API_KEY}
 
         params = {
             "address": data
         }
 
-        # URL encode address parameters directly in the f-string
-        geo_id = "9fc63b98ee04811a9c931d3e99a91ac0"
-        print(f"params = {params}")
+        logger.info("Request parameters: %s", params)
+
         # Create a PoolManager instance
         http = urllib3.PoolManager()
         encoded_params = urllib.parse.urlencode(params)
         url = f"{BASIC_PROFILE_URL}?{encoded_params}"
-        # https://api.gateway.attomdata.com/propertyapi/v1.0.0/property/basicprofile?address=4529+Winona+Ct%2C+Denver%2C+CO+80212
 
-        print(url)
+        logger.info("Request URL: %s", url)
 
         # Perform HTTP GET request with params in the URL
-        response = http.request(
+        http_response = http.request(
             'GET',
             url,
             headers=headers
         )
-        # Decode the JSON response
-        response_data = json.loads(response.data.decode('utf-8'))
-        print(response_data)
 
+        # Decode the JSON response
+        response_data = json.loads(http_response.data.decode('utf-8'))
+
+        logger.info("Response data: %s", response_data)
+
+        # Extract required information from response
         geo_id = response_data['property'][0]['location']['geoIdV4']['CO']
         longitude = response_data['property'][0]['location']['longitude']
         latitude = response_data['property'][0]['location']['latitude']
 
-    except Exception as e:
-        print(f"Failed to fetch property info: {e}")
+        response["body"] = json.dumps({"geo_id": geo_id, "longitude": longitude, "latitude": latitude})
 
-    return json.dumps({"geo_id": geo_id, "longitude": longitude, "latitude": latitude})
+    except Exception as e:
+        logger.error("Failed to fetch property info: %s", e)
+        response["statusCode"] = 500
+        response["body"] = json.dumps({"error": "Property not found"})
+
+    return response
+
 
 # Test the lambda_handler function
-event = {
-    "queryStringParameters": {
-        "address": "4529 Winona Ct, Denver, CO 80212"
-    }
-}
-
-#geo id : 1291dc1937525d78f89cebb6a43a50de
-
-context = {}
-print(lambda_handler(event, context))
+# event = {
+#     "queryStringParameters": {
+#         "address": "4529 Winona Ct, Denver, CO 80212"
+#     }
+# }
+#
+# context = {}
+# print(lambda_handler(event, context))

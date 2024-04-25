@@ -1,13 +1,26 @@
 import json
+import logging
+
+# Setup logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+# Define CORS headers
+cors_headers = {
+    'Content-Type': 'application/json',
+    'Access-Control-Allow-Headers': 'Content-Type',
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Methods': '*'
+}
 
 def calculate_investibility_score(property_data):
     score = 0
-    cap_rate = property_data.get('cap_rate', 0)
-    number_of_nxo_sfrs = property_data.get('number_of_nxo_sfrs', 0)
-    number_of_rsfr = property_data.get('number_of_rsfr', 0)
-    flood_factor_score = property_data.get('flood_factor_score', 10)  # assuming higher value if not specified
-    neighborhood_crime_rating = property_data.get('neighborhood_crime_rating', 10)
-    school_score = property_data.get('school_score', 0)
+    cap_rate = int(property_data.get('cap_rate', 0))
+    number_of_nxo_sfrs = int(property_data.get('number_of_nxo_sfrs', 0))
+    number_of_rsfr = int(property_data.get('number_of_rsfr', 0))
+    flood_factor_score = int(property_data.get('flood_factor_score', 10))  # assuming higher value if not specified
+    neighborhood_crime_rating = int(property_data.get('neighborhood_crime_rating', 10))
+    school_score = int(property_data.get('school_score', 0))
 
     # Step 1: Cap Rate Scoring
     if cap_rate >= 10:
@@ -86,31 +99,39 @@ def calculate_investibility_score(property_data):
     return {"score": score, "ranking": ranking}
 
 def lambda_handler(event, context):
-    property_data = event.get('queryStringParameters', {})
-
-    if not property_data:
-        return {
-            "statusCode": 400,
-            "body": json.dumps({"error": "Property data is required"})
-        }
-
-    result = calculate_investibility_score(property_data)
-    return {
+    response = {
         "statusCode": 200,
-        "body": json.dumps(result)
+        "headers": cors_headers,
+        "body": ""
     }
+    try:
+        logger.info("Received event: %s", event)
+        property_data = event.get('queryStringParameters', {})
+        if not property_data:
+            response["statusCode"] = 400
+            response["body"] = json.dumps({"error": "Property data is required"})
+        else:
+            result = calculate_investibility_score(property_data)
+            response["body"] = json.dumps(result)
+    except Exception as e:
+        logger.error("An error occurred: %s", e)
+        response["statusCode"] = 500
+        response["body"] = json.dumps({"error": "An error occurred while processing the request"})
+
+    return response
 
 # Test the lambda_handler function
-event = {
-    "queryStringParameters": {
-
-            "cap_rate": 9,
-            "number_of_nxo_sfrs": 15,
-            "number_of_rsfr": 4,
-            "flood_factor_score": 2,
-            "neighborhood_crime_rating": 1,
-            "school_score": 10
-    }
-}
-context = {}
-print(lambda_handler(event, context))
+# event = {
+#     "queryStringParameters": {
+#         "property": {
+#             "cap_rate": 9,
+#             "number_of_nxo_sfrs": 15,
+#             "number_of_rsfr": 4,
+#             "flood_factor_score": 2,
+#             "neighborhood_crime_rating": 1,
+#             "school_score": 10
+#         }
+#     }
+# }
+# context = {}
+# print(lambda_handler(event, context))

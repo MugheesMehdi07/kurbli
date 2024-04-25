@@ -1,7 +1,12 @@
 import json
 import urllib3
-from urllib.parse import urlencode
+import urllib.parse
+import logging
 from utils import *
+
+# Setup logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 
 def normalize_cap_rate(cap_rate):
@@ -24,10 +29,10 @@ def fetch_batchdata_property_lookup(api_token, data):
         if response.status == 200:
             return json.loads(response.data.decode('utf-8'))
         else:
-            print(f"Error fetching BatchData: {response.status}")
+            logger.error("Error fetching BatchData: %s", response.status)
             return None
     except Exception as e:
-        print(f"Error occurred during BatchData fetch: {e}")
+        logger.error("Error occurred during BatchData fetch: %s", e)
         return None
 
 
@@ -38,7 +43,7 @@ def calculate_cap_score(data):
         data=data
     )
 
-    print("BatchData Property Lookup:", response)
+    logger.info("BatchData Property Lookup: %s", response)
 
     if not response or 'results' not in response or not response['results']['properties']:
         return {"error": "No property data found"}
@@ -52,34 +57,48 @@ def calculate_cap_score(data):
     net_income = gross_annual_rent - annual_expenses
     cap_rate = net_income / market_value
 
-    print("Cap Rate:", cap_rate)
+    logger.info("Cap Rate: %s", cap_rate)
 
     return normalize_cap_rate(cap_rate)
 
 
 def lambda_handler(event, context):
-    data = event.get('queryStringParameters', {}).get('address', '')
-    address = get_address(data)
-
-    if not data:
-        return {
-            "statusCode": 400,
-            "body": json.dumps({"error": "Data parameter is required"})
-        }
-
-
-    cap_score = calculate_cap_score(address)
-    return {
+    response = {
         "statusCode": 200,
-        "body": json.dumps({"cap_score": cap_score})
+        'headers': {
+            'Access-Control-Allow-Headers': 'Content-Type',
+            'Access-Control-Allow-Origin': '*',
+            'Access-Control-Allow-Methods': '*'
+        },
+        "body": ""
     }
+    try:
+        logger.info("Received event: %s", event)
+        data = event.get('queryStringParameters', {}).get('address', '')
+        data = urllib.parse.unquote(data)
+        address = get_address(data)
+
+        if not data:
+            response["statusCode"] = 400
+            response["body"] = json.dumps({"error": "Data parameter is required"})
+        else:
+            cap_score = calculate_cap_score(address)
+            response["body"] = json.dumps({"cap_score": cap_score})
+
+    except Exception as e:
+        logger.error("Failed to fetch property info: %s", e)
+        response["statusCode"] = 500
+        response["body"] = json.dumps({"error": "Property not found"})
+
+    return response
 
 
 # Test the lambda_handler function
-event = {
-    "queryStringParameters": {
-        "address": "4529 Winona Ct, Denver, CO 80212"
-    }
-}
-context = {}
-print(lambda_handler(event, context))
+# event = {
+#     "queryStringParameters": {
+#         "address": "4529 Winona Ct, Denver, CO 80212"
+#     }
+# }
+# context = {}
+# print(lambda_handler(event, context))
+
