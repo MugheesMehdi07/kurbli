@@ -1,9 +1,13 @@
 import json
 import logging
 
+import boto3
+from botocore.exceptions import ClientError
+
 # Setup logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
 
 # Define CORS headers
 cors_headers = {
@@ -12,6 +16,10 @@ cors_headers = {
     'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Methods': '*'
 }
+
+# Initialize DynamoDB client
+dynamodb = boto3.resource('dynamodb')
+table = dynamodb.Table('PropertyScores')
 
 def calculate_investibility_score(property_data):
     score = 0
@@ -98,6 +106,7 @@ def calculate_investibility_score(property_data):
 
     return {"score": score, "ranking": ranking}
 
+
 def lambda_handler(event, context):
     response = {
         "statusCode": 200,
@@ -107,12 +116,28 @@ def lambda_handler(event, context):
     try:
         logger.info("Received event: %s", event)
         property_data = event.get('queryStringParameters', {})
-        if not property_data:
+        email = property_data.get('email', None)
+        address = property_data.get('address', None)
+
+        if not property_data or not email or not address:
             response["statusCode"] = 400
-            response["body"] = json.dumps({"error": "Property data is required"})
+            response["body"] = json.dumps({"error": "Property data, email, and address are required"})
         else:
-            result = calculate_investibility_score(property_data)
+            result= property_data
+            result.update(calculate_investibility_score(property_data))
+
+            # Save to DynamoDB
+            try:
+                table.put_item(Item=result)
+                logger.info("Saved result to DynamoDB: %s", result)
+            except ClientError as e:
+                logger.error("Error saving to DynamoDB: %s", e)
+                response["statusCode"] = 500
+                response["body"] = json.dumps({"error": "Error saving to DB"})
+                return response
+
             response["body"] = json.dumps(result)
+
     except Exception as e:
         logger.error("An error occurred: %s", e)
         response["statusCode"] = 500
@@ -120,7 +145,7 @@ def lambda_handler(event, context):
 
     return response
 
-# Test the lambda_handler function
+# # Test the lambda_handler function
 # event = {
 #     "queryStringParameters": {
 #         "property": {
@@ -129,9 +154,12 @@ def lambda_handler(event, context):
 #             "number_of_rsfr": 4,
 #             "flood_factor_score": 2,
 #             "neighborhood_crime_rating": 1,
-#             "school_score": 10
+#             "school_score": 10,
+#             "email": "john@gmail.com",
+#             "address": "123 Main St, Denver, CO 80212"
+#         },
 #         }
 #     }
-# }
+#
 # context = {}
 # print(lambda_handler(event, context))
