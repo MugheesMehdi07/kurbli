@@ -1,163 +1,245 @@
 <!DOCTYPE html>
 <html>
 <head>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<link rel="stylesheet" href="dist/batch-address-auto-complete.min.css">
-<script src="dist/batch-address-auto-complete.min.js"></script>
-<script src="environment.js"></script>
-<style>
-  .highlight {
-    font-size: 24px;
-    color: red;
-  }
-</style>
-<script>
-	var selectedAddress = {}
-  function initialize() {
-      // Custom Autocomplete of Batch Service
-      batchAutocomplete(document.getElementById("batchAddressAutoComplete"), env.domainServer, env.apiKey);
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="dist/batch-address-auto-complete.min.css">
+    <script src="dist/batch-address-auto-complete.min.js"></script>
+    <script src="environment.js"></script>
+    <style>
+        .highlight {
+            font-size: 24px;
+            color: red;
+        }
 
-      // Add an event listener to get value
-      document.addEventListener("batch-address-auto-complete", function(e) {
-         console.log('Selected item: ', e.detail);
-         if (e.detail) {
-             selectedAddress = {
-                 address: e.detail.name,
-                 city: e.detail.city,
-                 state: e.detail.state,
-                 zip: e.detail.zip,
-                 latitude: e.detail.latitude,
-                 longitude: e.detail.longitude
-             };
-             document.getElementById('getAddress').textContent = 'Selected address: ' + e.detail.name;
-             console.log(selectedAddress);
-         } else {
-             console.log("No address detail found");
-         }
-      });
+        /* Modal styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgb(0,0,0);
+            background-color: rgba(0,0,0,0.4);
+        }
 
-      // Add an event listener to handle error
-      document.addEventListener("batch-auto-complete-error", function (e) {
-         console.log("Error while searching: ", e.detail);
-      });
-  }
+        .modal-content {
+            background-color: white;
+            margin: 15% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+        }
 
-  function calculateScore() {
-    // Step 1: Check if the address is selected
-    if (!selectedAddress.address) {
-      alert('Please select an address first.');
-      return;
-    }
-    // Show loading indicator
-    document.getElementById('loadingIndicator').style.display = 'block';
-    // Step 2: Fetch geo_id, latitude, and longitude
-    fetchGeoId();
-  }
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+        }
 
-  function fetchGeoId() {
-    // Base URL
-    const baseUrl = 'https://1tuwbh5e46.execute-api.ap-southeast-2.amazonaws.com/test/';
+        .close:hover,
+        .close:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
+    </style>
+    <script>
+        var selectedAddress = {};
+        var addressPattern = /^\d+\s[A-z]+\s[A-z]+,\s[A-z]+,\s[A-Z]{2}\s\d{5}$/;
+        var userEmail = "";
+        var validAddress = false;
 
-    // Step 3: Fetch geo_id, latitude, and longitude
-    fetch(`${baseUrl}geo_id?address=${encodeURIComponent(selectedAddress.address)}`)
-      .then(response => response.json())
-      .then(data => {
-        const geoId = data.geo_id;
-        const latitude = data.latitude;
-        const longitude = data.longitude;
+        function validateAddress(address) {
+          validAddress = addressPattern.test(address);
+          console.log(validAddress);
+          if (!validAddress) {
+              document.getElementById('getAddress').textContent = 'Invalid address format. Please select following format i.e "123 Main St, Denver, CO 80212".';
+          }
+        }
 
-        // Step 4: Fetch scores in parallel
-        Promise.all([
-          fetch(`${baseUrl}investibility/crime_score?geo_id=${geoId}`).then(res => res.json()),
-          fetch(`${baseUrl}investibility/school_score?geo_id=${geoId}`).then(res => res.json()),
-          fetch(`${baseUrl}investibility/nsfr_score?latitude=${latitude}&longitude=${longitude}`).then(res => res.json()),
-          fetch(`${baseUrl}investibility/rfsr_score?latitude=${latitude}&longitude=${longitude}`).then(res => res.json()),
-          fetch(`${baseUrl}investibility/cap_score?address=${encodeURIComponent(selectedAddress.address)}`).then(res => res.json())
-        ]).then(results => {
-          const [crimeData, schoolData, nsfrData, rsfrData, capRateData] = results;
+        function initialize() {
+            // Custom Autocomplete of Batch Service
+            batchAutocomplete(document.getElementById("batchAddressAutoComplete"), env.domainServer, env.apiKey);
 
-          // Step 5: Update selectedAddress with fetched scores
-          selectedAddress.crime_rate = crimeData.crime_score;
-          selectedAddress.school_rate = schoolData.school_score;
-          selectedAddress.nsfr = nsfrData.n_sfr_score;
-          selectedAddress.rsfr = rsfrData.r_sfr_score;
-          selectedAddress.cap_rate = capRateData.cap_score;
-          console.log(selectedAddress);
+            // Add an event listener to get value
+            document.addEventListener("batch-address-auto-complete", function(e) {
+                console.log('Selected item: ', e.detail);
+                if (e.detail) {
+                    selectedAddress = {
+                        address: e.detail.name,
+                        city: e.detail.city,
+                        state: e.detail.state,
+                        zip: e.detail.zip,
+                        latitude: e.detail.latitude,
+                        longitude: e.detail.longitude
+                    };
+                    document.getElementById('getAddress').textContent = 'Selected address: ' + e.detail.name;
+                    validateAddress(e.detail.name);
+                    console.log(selectedAddress);
+                } else {
+                    console.log("No address detail found");
+                }
+            });
 
-          document.getElementById('crimeScore').textContent = `Crime Score: ${selectedAddress.crime_rate}`;
-          document.getElementById('schoolScore').textContent = `School Score: ${selectedAddress.school_rate}`;
-          document.getElementById('nsfrScore').textContent = `NSFR Score: ${selectedAddress.nsfr}`;
-          document.getElementById('rsfrScore').textContent = `RSFR Score: ${selectedAddress.rsfr}`;
-          document.getElementById('capScore').textContent = `CAP Score: ${selectedAddress.cap_rate}`;
+            // Add an event listener to handle error
+            document.addEventListener("batch-auto-complete-error", function (e) {
+                console.log("Error while searching: ", e.detail);
+            });
+        }
 
-          // Step 6: Fetch and display investibility score
-          fetchInvestibilityScore(selectedAddress);
-        });
-      });
-  }
+        function calculateScore() {
+            // Step 1: Check if the address is selected
+            if (!selectedAddress.address) {
+                alert('Please select an address first.');
+                return;
+            }
 
-  function fetchInvestibilityScore(address) {
-    // Base URL
-    const baseUrl = 'https://1tuwbh5e46.execute-api.ap-southeast-2.amazonaws.com/test/';
+            if (!validAddress) {
+                alert('Address not complete, please select a valid address first');
+                return;
+            }
 
-    // Filter out null or undefined parameters
-    const queryParams = Object.entries(address)
-      .filter(([key, value]) => value !== null && value !== undefined)
-      .map(([key, value]) => `${encodeURIComponent(key)}=${encodeURIComponent(value)}`)
-      .join('&');
+            // Show email input popup
+            document.getElementById('emailModal').style.display = 'block';
+        }
 
-    // Construct the URL with filtered parameters
-    const investibilityUrl = `${baseUrl}investibility/?${queryParams}`;
+        function submitEmail() {
+            userEmail = document.getElementById('emailInput').value;
+            if (userEmail) {
+                document.getElementById('emailModal').style.display = 'none';
+                // Show loading indicator
+                document.getElementById('loadingIndicator').style.display = 'block';
+                // Step 2: Fetch geo_id, latitude, and longitude
+                fetchGeoId();
+            } else {
+                alert('Please enter an email address.');
+            }
+        }
 
-    // Step 6: Fetch investibility score
-    fetch(investibilityUrl, {
-      method: 'GET',
-      headers: { 'Content-Type': 'application/json' }
-    })
-    .then(response => response.json())
-    .then(data => {
-      // Display investibility score and all scores
+        function fetchGeoId() {
+            // Base URL
+            const baseUrl = 'https://1tuwbh5e46.execute-api.ap-southeast-2.amazonaws.com/test/';
+
+            // Step 3: Fetch geo_id, latitude, and longitude
+            fetch(`${baseUrl}geo_id?address=${encodeURIComponent(selectedAddress.address)}`)
+                .then(response => response.json())
+                .then(data => {
+                    const geoId = data.geo_id;
+                    const latitude = data.latitude;
+                    const longitude = data.longitude;
+
+                    // Step 4: Fetch scores in parallel
+                    Promise.all([
+                        fetch(`${baseUrl}investibility/crime_score?geo_id=${geoId}`).then(res => res.json()),
+                        fetch(`${baseUrl}investibility/school_score?geo_id=${geoId}`).then(res => res.json()),
+                        fetch(`${baseUrl}investibility/nsfr_score?latitude=${latitude}&longitude=${longitude}`).then(res => res.json()),
+                        fetch(`${baseUrl}investibility/rfsr_score?latitude=${latitude}&longitude=${longitude}`).then(res => res.json()),
+                        fetch(`${baseUrl}investibility/cap_score?address=${encodeURIComponent(selectedAddress.address)}`).then(res => res.json())
+                    ]).then(results => {
+                        const [crimeData, schoolData, nsfrData, rsfrData, capRateData] = results;
+
+                        // Step 5: Update selectedAddress with fetched scores
+                        selectedAddress.crime_rate = crimeData.crime_score;
+                        selectedAddress.school_rate = schoolData.school_score;
+                        selectedAddress.nsfr = nsfrData.n_sfr_score;
+                        selectedAddress.rsfr = rsfrData.r_sfr_score;
+                        selectedAddress.cap_rate = capRateData.cap_score;
+                        console.log(selectedAddress);
+
+                        document.getElementById('crimeScore').textContent = `Crime Score: ${selectedAddress.crime_rate}`;
+                        document.getElementById('schoolScore').textContent = `School Score: ${selectedAddress.school_rate}`;
+                        document.getElementById('nsfrScore').textContent = `NSFR Score: ${selectedAddress.nsfr}`;
+                        document.getElementById('rsfrScore').textContent = `RSFR Score: ${selectedAddress.rsfr}`;
+                        document.getElementById('capScore').textContent = `CAP Score: ${selectedAddress.cap_rate}`;
+
+                        // Step 6: Fetch and display investibility score
+                        fetchInvestibilityScore(selectedAddress);
+                    });
+                });
+        }
+
+        function fetchInvestibilityScore(address) {
+            // Base URL
+            const baseUrl = 'https://1tuwbh5e46.execute-api.ap-southeast-2.amazonaws.com/test/';
+            address.email = userEmail;
+
+            // Filter out null or undefined parameters
+            const queryParams = Object.entries(address)
+                .filter(([key, value]) => value !== null && value !== undefined)
+                .map(([key, value]) => `${encodeURIComponent(key)}=${encodeURIComponent(value)}`)
+                .join('&');
+
+            // Construct the URL with filtered parameters
+            const investibilityUrl = `${baseUrl}investibility/?${queryParams}`;
+
+            // Step 6: Fetch investibility score
+            fetch(investibilityUrl, {
+                method: 'GET',
+                headers: { 'Content-Type': 'application/json' }
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Display investibility score and all scores
+                document.getElementById('loadingIndicator').style.display = 'none';
+                displayInvestibilityScore(data);
+            });
+        }
+
+        function displayInvestibilityScore(scores) {
+            console.log(scores);
+            // Display investibility score and all scores on frontend
+            document.getElementById('investibilityScore').textContent = `Investibility Score: ${scores.score} , ${scores.ranking}`;
+        }
+
+        // Display loading indicator when the page loads
+        document.addEventListener('DOMContentLoaded', function() {
             document.getElementById('loadingIndicator').style.display = 'none';
+        });
 
-      displayInvestibilityScore(data);
-    });
-}
-
-  function displayInvestibilityScore(scores) {
-    console.log(scores);
-    // Display investibility score and all scores on frontend
-    document.getElementById('investibilityScore').textContent = `Investibility Score: ${scores.score} , ${scores.ranking}`;
-
-  }
-// Display loading indicator when the page loads
-document.addEventListener('DOMContentLoaded', function() {
-  document.getElementById('loadingIndicator').style.display = 'none';
-});
-</script>
+        // Close the modal
+        function closeModal() {
+            document.getElementById('emailModal').style.display = 'none';
+        }
+    </script>
 </head>
 <body onload="initialize()">
 
-  <h2>Kurbli</h2>
-  <p>Start typing to select address:</p>
-  <div class="batch-loading">
-    <input class="batch-autocomplete" id="batchAddressAutoComplete" notFoundText="No results found" showNotFound=true
-       displayData="name" type="text" take="5" debounce='700' placeholder="Enter your address">
-    <div id="batch-loader"></div>
-    <div id="batchNoDataFound"></div>
-  </div>
-  <button onclick="calculateScore()">Calculate Score</button>
-  <div>
-     <p style="font-weight: 900; color: blue;" id='getAddress'></p>
-	   <div id='investibilityScore'></div>
-     <div id='crimeScore'></div>
-     <div id='schoolScore'></div>
-     <div id='nsfrScore'></div>
-     <div id='rsfrScore'></div>
-     <div id='capScore'></div>
+    <h2>Kurbli</h2>
+    <p>Start typing to select address:</p>
+    <div class="batch-loading">
+        <input class="batch-autocomplete" id="batchAddressAutoComplete" notFoundText="No results found" showNotFound=true
+            displayData="name" type="text" take="5" debounce='700' placeholder="Enter your address">
+        <div id="batch-loader"></div>
+        <div id="batchNoDataFound"></div>
+    </div>
+    <button onclick="calculateScore()">Calculate Score</button>
+    <div>
+        <p style="font-weight: 900; color: blue;" id='getAddress'></p>
+        <div id='investibilityScore'></div>
+        <div id='crimeScore'></div>
+        <div id='schoolScore'></div>
+        <div id='nsfrScore'></div>
+        <div id='rsfrScore'></div>
+        <div id='capScore'></div>
         <!-- Loading indicator HTML -->
-      <div id="loadingIndicator">
-        <img src="loading.gif" alt="Loading..." width="50px" height="50px">
-      </div>
-  </div>
+        <div id="loadingIndicator">
+            <img src="loading.gif" alt="Loading..." width="50px" height="50px">
+        </div>
+    </div>
+
+    <!-- The Modal -->
+    <div id="emailModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <p>Enter your email to calculate the score:</p>
+            <input type="email" id="emailInput" placeholder="Enter your email">
+            <button onclick="submitEmail()">Submit</button>
+        </div>
+    </div>
+
 </body>
 </html>
