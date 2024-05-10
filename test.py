@@ -1,20 +1,80 @@
+import json
+
 import requests
+import urllib3
+
+from src.utils import BATCH_SEARCH_URL, BATCH_API_KEY
 
 # URL and parameter
 url = 'https://api.sfranalytics.com/api/v1/property/best-buyers'
-params = {'search_text': '4529 Winona Ct, Denver, CO 80212'}
+params = {
+
+            "searchCriteria": {
+
+                "quickList": "not-owner-occupied",
+
+                "general": {
+
+                    "propertyTypeDetail": {
+
+                        "inList": [
+
+                            "Single Family",
+
+                            "Single Family Residential"
+
+                        ]
+
+                    }
+
+                },
+
+                "compAddress": {
+
+                    "street": "1600 jamaica st",
+                    "city": "titusville",
+                    "state": "FL",
+                    "zip": "32780"
+
+                }
+
+            },
+
+            "options": {
+
+                "useDistance": 'true',
+
+                "distanceMiles": 2,
+
+                "skip": 0,
+
+            }
+
+        }
 
 # Headers
-headers = {'X-API-TOKEN': 'bcf6b2c944ee488f17fc7744f5b929f913ca13e0f5fc49973a3b8cd2c7c890fb'}
+def fetch_batchdata_property_lookup():
+    http = urllib3.PoolManager()
+    url = BATCH_SEARCH_URL
+    headers = {
+        "Accept": "application/json",
+        "Authorization": f"Bearer {BATCH_API_KEY}",
+        "Content-Type": "application/json"
+    }
+    try:
+        # Send the POST request with JSON data
+        response = http.request('POST', url, headers=headers, body=json.dumps(params))
+        if response.status == 200:
+            print(response.data)
+            return json.loads(response.data.decode('utf-8'))
+        else:
+            # logger.error("Error fetching BatchData: %s", response.status)
+            print(response)
+            return None
+    except Exception as e:
+        # logger.error("Error occurred during BatchData fetch: %s", e)
+        print(e)
+        return None
 
-# Send GET request
-response = requests.get(url, headers=headers, params=params)
-
-# Check if the request was successful
-if response.status_code == 200:
-    # Process the response
-    data = response.json()
-    print("Data retrieved successfully:", data)
-else:
-    print("Failed to retrieve data:", response.status_code)
-
+result = fetch_batchdata_property_lookup()
+print(len(result['results']['properties']))

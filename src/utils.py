@@ -14,6 +14,7 @@ SCHOOL_PROFILE_URL = f'{ATOM_BASE_URL}/v4/school/search'
 BASIC_PROFILE_URL = f'{ATOM_BASE_URL}/propertyapi/v1.0.0/property/basicprofile'
 
 BATCH_URL = f'{BATCH_BASE_URL}/api/v1/property/lookup/all-attributes'
+BATCH_SEARCH_URL = f'{BATCH_BASE_URL}/api/v1/property/search'
 
 #Default Scores
 DEFAULT_CAP_RATE = 0.05
