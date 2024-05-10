@@ -3,7 +3,7 @@ import { Right } from "./pages/right";
 import { LeftText } from "./pages/left";
 import { Scorebadge } from "./UI/score_badge";
 import { useState } from "react";
-import { useKurbilScore } from "./componets/kurbilScore";
+import { useKurbilScore } from "./components/kurbilScore";
 
 function App() {
   const [scoreBadgeVisible, setScoreBadgeVisible] = useState(false);

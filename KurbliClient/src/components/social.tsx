@@ -10,6 +10,7 @@ function getCanvasImageUrl(canvas: HTMLCanvasElement): Promise<string | null> {
     canvas.toBlob((blob) => {
       if (blob) {
         const url = URL.createObjectURL(blob);
+        console.log(url);
         resolve(url);
       } else {
         resolve(null);
