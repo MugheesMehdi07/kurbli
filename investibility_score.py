@@ -24,11 +24,11 @@ table = dynamodb.Table('PropertyScores')
 def calculate_investibility_score(property_data):
     score = 0
     cap_rate = int(property_data.get('cap_rate', 0))
-    number_of_nxo_sfrs = int(property_data.get('number_of_nxo_sfrs', 0))
-    number_of_rsfr = int(property_data.get('number_of_rsfr', 0))
-    flood_factor_score = int(property_data.get('flood_factor_score', 10))  # assuming higher value if not specified
-    neighborhood_crime_rating = int(property_data.get('neighborhood_crime_rating', 10))
-    school_score = int(property_data.get('school_score', 0))
+    number_of_nxo_sfrs = int(property_data.get('nsfr', 0))
+    number_of_rsfr = int(property_data.get('rsfr', 0))
+    flood_factor_score = int(property_data.get('flood_rate', 10))  # assuming higher value if not specified
+    neighborhood_crime_rating = int(property_data.get('crime_rate', 10))
+    school_score = int(property_data.get('school_rate', 0))
 
     # Step 1: Cap Rate Scoring
     if cap_rate >= 10:
@@ -145,21 +145,20 @@ def lambda_handler(event, context):
 
     return response
 
-# # Test the lambda_handler function
-# event = {
-#     "queryStringParameters": {
-#         "property": {
-#             "cap_rate": 9,
-#             "number_of_nxo_sfrs": 15,
-#             "number_of_rsfr": 4,
-#             "flood_factor_score": 2,
-#             "neighborhood_crime_rating": 1,
-#             "school_score": 10,
-#             "email": "john@gmail.com",
-#             "address": "123 Main St, Denver, CO 80212"
-#         },
-#         }
-#     }
-#
-# context = {}
-# print(lambda_handler(event, context))
+# Test the lambda_handler function
+event = {
+        "queryStringParameters": {
+            "cap_rate": 2,
+            "nsfr": 20,
+            "rsfr": 20,
+            "flood_rate": 2,
+            "crime_rate": 10,
+            "school_rate": 5,
+            "email": "john@gmail.com",
+            "address": "123 Main St, Denver, CO 80212"
+        }
+
+    }
+
+context = {}
+print(lambda_handler(event, context))

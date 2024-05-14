@@ -1,7 +1,6 @@
 import { MutableRefObject, useEffect, useState } from "react";
 
 interface SocialLinksProps {
-  text: string;
   canvasRef: MutableRefObject<HTMLCanvasElement | null>;
 }
 
@@ -9,9 +8,7 @@ function getCanvasImageUrl(canvas: HTMLCanvasElement): Promise<string | null> {
   return new Promise((resolve) => {
     canvas.toBlob((blob) => {
       if (blob) {
-        const url = URL.createObjectURL(blob);
-        console.log(url);
-        resolve(url);
+        resolve(uploadImage(blob));  // Upload directly after creating blob
       } else {
         resolve(null);
       }
@@ -19,7 +16,26 @@ function getCanvasImageUrl(canvas: HTMLCanvasElement): Promise<string | null> {
   });
 }
 
-export function Social_links({ text, canvasRef }: SocialLinksProps) {
+// Function to upload image to ImgBB and return public URL
+async function uploadImage(blob: Blob): Promise<string> {
+  const formData = new FormData();
+  formData.append("image", blob);
+
+  const apiKey = 'a926e58ce71548f84cce88831a71c8df';  // Replace with your actual ImgBB API key
+  const response = await fetch(`https://api.imgbb.com/1/upload?key=${apiKey}`, {
+    method: 'POST',
+    body: formData,
+  });
+
+  if (response.ok) {
+    const data = await response.json();
+    return data.data.url;  // ImgBB returns the URL of the uploaded image here
+  } else {
+    throw new Error('Failed to upload image');
+  }
+}
+
+export function SocialLinks({ canvasRef }: SocialLinksProps) {
   const [canvasImageUrl, setCanvasImageUrl] = useState<string | null>(null);
 
   useEffect(() => {
@@ -34,43 +50,14 @@ export function Social_links({ text, canvasRef }: SocialLinksProps) {
 
   return (
     <div className="flex my-1">
-      <div className="font-bold py-1 my-1 pr-3">{text}</div>
-      <a
-        href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(
-          canvasImageUrl || ""
-        )}`}
-        target="_blank"
-        rel="noopener noreferrer"
-      >
-        <img className="cursor-pointer p-1 m-1" alt="" src="/facebook.svg" />
+      <a href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(canvasImageUrl || "")}`} target="_blank" rel="noopener noreferrer">
+        <img className="cursor-pointer p-1 m-1" alt="Share on Facebook" src="/facebook.svg" />
       </a>
-      <a
-        href={`https://www.instagram.com/?url=${encodeURIComponent(
-          canvasImageUrl || ""
-        )}`}
-        target="_blank"
-        rel="noopener noreferrer"
-      >
-        <img className="cursor-pointer p-1 m-1" alt="" src="/instagram.svg" />
+      {/* Instagram does not support direct sharing of URLs. Link needs to be posted manually or through specific API integrations */}
+      <a href={`https://www.linkedin.com/shareArticle?mini=true&url=${encodeURIComponent(canvasImageUrl || "")}`} target="_blank" rel="noopener noreferrer">
+        <img className="cursor-pointer p-1 m-1" alt="Share on LinkedIn" src="/linkedin.svg" />
       </a>
-      <a
-        href={`https://www.linkedin.com/shareArticle?mini=true&url=${encodeURIComponent(
-          canvasImageUrl || ""
-        )}`}
-        target="_blank"
-        rel="noopener noreferrer"
-      >
-        <img className="cursor-pointer p-1 m-1" alt="" src="/linkedin.svg" />
-      </a>
-      <a
-        href={`https://www.tiktok.com/@your_username_here?url=${encodeURIComponent(
-          canvasImageUrl || ""
-        )}`}
-        target="_blank"
-        rel="noopener noreferrer"
-      >
-        <img className="cursor-pointer p-1 m-1" src="tiktok.svg" />
-      </a>
+      {/* TikTok sharing link needs to be updated according to their sharing API or guidelines */}
     </div>
   );
 }
