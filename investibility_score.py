@@ -3,6 +3,9 @@ import logging
 
 import boto3
 from botocore.exceptions import ClientError
+import math
+
+
 
 # Setup logging
 logging.basicConfig(level=logging.INFO)
@@ -29,6 +32,7 @@ def calculate_investibility_score(property_data):
     flood_factor_score = int(property_data.get('flood_rate', 10))  # assuming higher value if not specified
     neighborhood_crime_rating = int(property_data.get('crime_rate', 10))
     school_score = int(property_data.get('school_rate', 0))
+
 
     # Step 1: Cap Rate Scoring
     if cap_rate >= 10:

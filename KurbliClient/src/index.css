@@ -1,3 +1,13 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+.custom-autocomplete .MuiFormControl-root .MuiOutlinedInput-root:focus,
+.custom-autocomplete .MuiFormControl-root .MuiOutlinedInput-root:focus-within {
+  background: none !important;
+  border: none !important;
+}
+
+.custom-autocomplete .MuiTextField-root .MuiAutocomplete-inputRoot {
+  padding: 0 10px 0 0px !important;
+}
