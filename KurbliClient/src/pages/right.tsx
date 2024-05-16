@@ -12,13 +12,16 @@ export function Right({ valid_address }: any) {
 
       <div className="mx-3 md:mx-2 my-4 md:my-2 p-0 md:p-2 order-1 md:order-none">
         <h2 className="text-lg sm:text-2xl md:leading-[32px] text-white">
-          How does kurbli work?
+          Want to learn more about your kurbli score?
         </h2>
 
         <p className="text-xs sm:text-base text-white mt-3 sm:mt-6">
-          kurbli uses a proprietary combination of artificial intelligence and
-          predictive analytics to determine how investible your property may be
-          to potential investors.
+        Get your detailed kurbli report and find out how to 
+        increase your kurbli score and make your home more investible. 
+        <a href="/" target="_blank" className="underline font-semibold">
+                Click here
+        </a>{" "}
+        to join the waitlist.
         </p>
       </div>
       {/* <div className="text-2xl font-semibold text-gray-300 m-2 p-2">

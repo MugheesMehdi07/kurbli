@@ -312,7 +312,7 @@ export function Input({
             <p className="text-base text-[#18180B]">
               Here's your kurbli score. Investors are looking for properties
               just like yours. <br className="hidden lg:block" />
-              <a href="/" className="underline font-semibold">
+              <a href="https://lendedu.com/blog/best-home-sale-leaseback-options/#sell2rent" target="_blank" className="underline font-semibold">
                 Click here
               </a>{" "}
               to find out how to connect with investors today.
