@@ -1,4 +1,4 @@
-export function Right({ valid_address }: any) {
+export function Right({ valid_address , score}: any) {
   return (
     <div className="flex flex-col bg-[#18180B]">
       <div className="bg-white order-2 md:order-none">
@@ -12,16 +12,24 @@ export function Right({ valid_address }: any) {
 
       <div className="mx-3 md:mx-2 my-4 md:my-2 p-0 md:p-2 order-1 md:order-none">
         <h2 className="text-lg sm:text-2xl md:leading-[32px] text-white">
-          Want to learn more about your kurbli score?
+         {score ? "Want to learn more about your kurbli score?" : valid_address ? "How does kurbli work?" : "What is kurbli's real-time scoring system?" }
         </h2>
 
         <p className="text-xs sm:text-base text-white mt-3 sm:mt-6">
-        Get your detailed kurbli report and find out how to 
-        increase your kurbli score and make your home more investible. 
-        <a href="/" target="_blank" className="underline font-semibold">
+        {score ?  "Get your detailed kurbli report and find out how to increase your kurbli score and make your home more investible." 
+        : valid_address ? 
+        "kurbli uses a proprietary combination of artificial intelligence and predictive analytics to determine how investible your property may be to potential investors." 
+        : "kurbli's real-time scoring system is a tool designed for homeowners to assess how appealing their property is to potential investors based on various factors."}
+        
+      {valid_address && score && (
+        <>
+
+        <a href="https://getkurbli.grwebsite.com/" target="_blank" className="underline font-semibold">
                 Click here
         </a>{" "}
         to join the waitlist.
+        </>)}
+       
         </p>
       </div>
       {/* <div className="text-2xl font-semibold text-gray-300 m-2 p-2">

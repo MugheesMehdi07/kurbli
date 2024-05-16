@@ -42,7 +42,7 @@ function App() {
             score={score}
             setScore={setScore}
           />
-          <Right valid_address={valid_address} />
+          <Right valid_address={valid_address} score={score} />
         </div>
         {scoreBadgeVisible && (
           <div className="w-full h-full flex items-center justify-center fixed top-0 left-0 overflow-x-hidden overflow-y-auto z-50 bg-black bg-opacity-40">
