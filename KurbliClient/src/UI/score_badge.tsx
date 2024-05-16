@@ -64,7 +64,7 @@ export function ScoreBadge({ handleClose, score }: Props) {
         &times;
       </button>
       <Helmet>
-        <title>Score Badge</title>
+        <title>Kurbli</title>
         <meta property="og:url" content={window.location.href} />
         <meta property="og:type" content="website" />
         <meta property="og:title" content="My Kurbli Score" />

@@ -50,7 +50,7 @@ export function SocialLinks({ canvasRef }: SocialLinksProps) {
 
   return (
     <div className="flex mt-1 md:my-1">
-      <a href={`/`} target="_blank" rel="noopener noreferrer">
+      <a href={`https://www.tiktok.com`} target="_blank" rel="noopener noreferrer">
         <img
           className="cursor-pointer p-1 m-1"
           alt="Share on Tiktok"
@@ -70,7 +70,7 @@ export function SocialLinks({ canvasRef }: SocialLinksProps) {
           src="/facebook.svg"
         />
       </a>
-      <a href={`/`} target="_blank" rel="noopener noreferrer">
+      <a href={`https://www.instagram.com`} target="_blank" rel="noopener noreferrer">
         <img
           className="cursor-pointer p-1 m-1"
           alt="Share on Instagram"
