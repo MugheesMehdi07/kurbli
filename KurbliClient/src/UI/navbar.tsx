@@ -7,8 +7,8 @@ export function Navbar() {
       }}
     >
       <img
-        className="p-2 m-2 rounded-2xl"
-        src="/logo.jpeg"
+        className="p-2 m-2"
+        src="/logo.png"
         width="80px"
         height="20px"
       ></img>

@@ -69,12 +69,12 @@ export function Input({
       );
       const geo_json = await geo_response.json();
       setGeo_data(geo_json);
+
     } catch (error) {
       alert("Scores not found. Please check Address and try again.");
       console.error(error);
-    } finally {
       setIsLoading(false);
-    }
+    } 
   };
 
   useEffect(() => {
@@ -83,10 +83,11 @@ export function Input({
   }, [email]);
 
   useEffect(() => {
-    if (!geo_data.geo_id) return;
+    if (!geo_data.geo_id) {
+        return;
+      }
 
     const fetch_other_data = async () => {
-      setIsLoading(true);
       try {
         const urls = [
           `${backend_url}/investibility/crime_score?geo_id=${geo_data.geo_id}`,
@@ -106,16 +107,29 @@ export function Input({
       } catch (error) {
         alert("Scores not found. Please check Address and try again.");
         console.error(error);
-      } finally {
         setIsLoading(false);
-      }
+      } 
     };
 
     fetch_other_data();
   }, [geo_data.geo_id, backend_url, geo_data.latitude, geo_data.longitude]);
 
+  function reset(){
+    setCrime_score(0);
+    setNsfr_score(0);
+    setRfsr_score(0);
+    setSchool_score(0);
+    setCap_score(0);
+    setGeo_data({ geo_id: "", longitude: "", latitude: "" });
+  }
+
   useEffect(() => {
-    if (!(nsfr_score && rfsr_score && crime_score && school_score)) return;
+    console.log("My Use Effect");
+
+    if (!(nsfr_score && rfsr_score && crime_score && school_score)){
+      console.log("Not all scores are available");
+      return;
+    }
 
     const fetch_kurbil_score = async () => {
       try {
@@ -129,9 +143,18 @@ export function Input({
         const response = await fetch(url);
         const krubil_json = await response.json();
         fn(krubil_json.score);
+        setScore(true);
+
+
       } catch (error) {
         console.error("Error fetching the kurbil score", error);
         alert("Scores not found. Please check Address and try again.");
+        setScore(false);
+      }
+      finally{
+        setIsLoading(false);
+        console.log("Resetting");
+        reset();
       }
     };
 
@@ -154,8 +177,7 @@ export function Input({
       setValid_address(true);
       setShowCheckbox(false);
     }
-    if (valid_address && email.length > 0) {
-      setScore(true);
+    if (valid_address && email.length > 0) {  
       fetch_data();
     }
   };

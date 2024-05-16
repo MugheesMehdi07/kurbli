@@ -29,7 +29,7 @@ export function LeftText({
           {valid_address
             ? score
               ? "Knowing your kurbli score lets you value your home the same way an investor might. Feel free to brag - your property deserves it!"
-              : "Enter your property address and get your kurbli score."
+              : "Find your address in the dropdown below, make sure its accurate to the standard address."
             : " Get started by entering your email address below."}
         </p>
       </div>
